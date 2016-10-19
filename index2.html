@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <style>
+        html,body{
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "Microsoft yahei";
+        }
+        p{
+            margin: 0;
+        }
+        .mask-layer{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            background: #000;
+            display: none;
+            transition: opacity 0.3s ease-out;
+        }
+        .mask-show{
+            display: block;
+        }
+        .dialog{
+            width: 90%;
+            display: none;
+            /*min-height: 200px;*/
+            position: absolute;
+            left: 50%;
+            top: 50%;
+
+            border-radius: 5px;
+            z-index: 1;
+            -webkit-transform: translate3d(-50%,-50%,0);
+            -moz-transform: translate3d(-50%,-50%,0);
+            -ms-transform: translate3d(-50%,-50%,0);
+            -o-transform: translate3d(-50%,-50%,0);
+            transform: translate3d(-50%,-50%,0);
+        }
+        .dialog-active{
+            display: block !important;
+        }
+        .dialog-wrap{
+
+        }
+        .dialog-title{
+            position: relative;
+            line-height: 34px;
+            height: 49px;
+            padding: 0 10px;
+            text-align: center;
+            color: #ffff7f;
+            font-size: .95rem;
+            background: url("title.png") no-repeat center center;
+        }
+        .dialog-info{
+            line-height:1.2;
+            padding: 20px 10px;
+            text-align: center;
+            font-size: .8rem;
+        }
+        .dialog-content{
+            width: 70%;
+            background: #fffae0;
+            margin: -30px auto;
+            padding-top: 40px;
+        }
+        .d-info1{
+            font-size: .875rem;
+            color: #666;
+            line-height: 24px;
+        }
+        .d-info2{
+            font-size: 1.75rem;
+            color: #e65649;
+            font-weight: 600;
+            line-height: 56px;
+        }
+        .dialog-btns{
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .dialog-btn{
+            background: #e65649;
+            color: #ffffff;
+            line-height: 44px;
+            text-align: center;
+            display: block;
+            border-right: 1px solid #efefef;
+            font-size: .9rem;
+            width: 85%;
+            border-radius: 5px;
+            margin: 0 auto 10px;
+        }
+        .dialog-btn:last-child{
+            border: 1px solid #ccc;
+            background: #ffffff;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<!--<div class="dialog dialog-active">
+    <div class="dialog-wrap">
+        <div class="dialog-title">提示信息</div>
+        <div class="dialog-content">
+            <div class="dialog-info">
+                <p class="d-info1">恭喜你获得</p>
+                <p class="d-info2">10元代金券</p>
+            </div>
+            <div class="dialog-btns">
+                <span class="dialog-btn">确定</span>
+                <span class="dialog-btn">取消</span>
+            </div>
+        </div>
+    </div>
+</div>-->
+<button>点击</button>
+<script>
+
+    var Dialog= function (obj) {
+
+        if(obj.parent == undefined){
+            obj.parent = document.body
+        }else{
+            obj.parent = document.querySelector(obj.parent);
+        }
+
+        if(!obj.parent.querySelector('.mask-layer')){
+            var maskDom = document.createElement('div');
+            maskDom.className = 'mask-layer';
+            obj.parent.appendChild(maskDom);
+            this.mask = maskDom;
+        }else{
+            this.mask = obj.parent.querySelector('.mask-layer');
+        }
+
+        if(!obj.parent.querySelector('.dialog')){
+            var dom = document.createElement('div');
+            dom.className = 'dialog';
+            obj.parent.appendChild(dom);
+            this.wrap = dom;
+        }else{
+            this.wrap = obj.parent.querySelector('.dialog');
+        }
+        this.title = obj.title || '提示信息';
+        if(obj.tpl){
+            this.rplDirect = true;
+        }
+        this.tpl = obj.tpl || '<div class="dialog-wrap"><div class="dialog-title">{{title}}</div><div class="dialog-content"><div class="dialog-info">{{information}}</div><div class="dialog-btns">{{btn}}</div></div></div>';
+        this.init();
+    };
+    Dialog.prototype = {
+        init:function(){
+            this.tpl = this.tpl.replace('{{title}}',this.title);
+        },
+        alert:function(msg,callback){
+            if(!this.rplDirect){
+                this.tpl = this.tpl.replace('{{information}}',msg).replace("{{btn}}","<span class='dialog-btn ok'>确定</span>");
+            }
+
+            this.wrap.innerHTML = this.tpl;
+
+            this.show();
+
+            this.callback = !!callback ? callback:function(){};
+            this.bindEvent();
+        },
+        confirm:function(msg,callback){
+            if(!this.rplDirect){
+                this.tpl = this.tpl.replace('{{information}}',msg).replace('{{btn}}','<span class="dialog-btn ok">以后再说</span><span class="dialog-btn cancel">绑定银行卡</span>');
+            }
+            this.wrap.innerHTML = this.tpl;
+            this.show();
+
+            this.callback = !!callback ? callback:function(){};
+            this.bindEvent();
+        },
+        bindEvent:function(){
+            this.wrap.querySelector('.ok').addEventListener('click',function(){
+                this.hide();
+                this.callback();
+            }.bind(this),false);
+            if(this.wrap.querySelector('.cancel')){
+                this.wrap.querySelector('.cancel').addEventListener('click',function(){
+                    this.hide()
+                }.bind(this),false)
+            }
+
+
+        },
+        show:function(){
+            this.wrap.className = this.wrap.className+=' dialog-active';
+            this.mask.className = this.mask.className+=' mask-show';
+            setTimeout(function(){
+                this.mask.style.opacity='0.7';
+            }.bind(this),10);
+            this.flag = false;
+        },
+        _hide:function(){
+            if(this.flag){
+                this.wrap.className = this.wrap.classList[0];
+                this.mask.className = this.mask.classList[0];
+                this.destroy();
+            }
+        },
+        hide:function(){
+            this.mask.style.opacity = 0;
+            this.mask.addEventListener('webkitTransitionEnd',this._hide.bind(this),false);
+            this.flag = true;
+        },
+        destroy:function(){
+            this.wrap.innerHTML='';
+        }
+    };
+
+
+    /*var dialog = new Dialog({
+        title:'领取成功',
+        tpl:'<div class="dialog-wrap"><div class="dialog-title">领取成功</div><div class="dialog-content"><div class="dialog-info"><p class="d-info1">恭喜你获得</p><p class="d-info2">10元代金券</p></div><div class="dialog-btns"><span class="dialog-btn ok">分享到朋友圈</span><span class="dialog-btn cancel">返回</span></div></div></div>'
+    });
+    document.querySelector('button').onclick=function(){
+        dialog.confirm('hello world',function(){
+            console.warn('you selected certain');
+        })
+    };*/
+
+    var xml = new XMLHttpRequest();
+    xml.open('post','data.json',true);
+    xml.onreadystatechange=function(){
+        if(xml.readyState == 4 && xml.status == 200){
+            var res = JSON.parse(xml.responseText);
+            var dialog = new Dialog({
+                title:'领取成功',
+                tpl:'<div class="dialog-wrap"><div class="dialog-title">领取成功</div><div class="dialog-content"><div class="dialog-info"><p class="d-info1">恭喜你获得</p><p class="d-info2">'+res.res.count+'元'+res.res.exp+'</p></div><div class="dialog-btns"><span class="dialog-btn ok">分享到朋友圈</span><span class="dialog-btn cancel">返回</span></div></div></div>'
+            }).confirm('',function(){
+                console.log('已发送请求')
+            });
+        }
+    };
+    xml.send('');
+
+</script>
+</body>
+</html>

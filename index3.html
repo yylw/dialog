@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!--<div class="dialog dialog-active">
+    <div class="dialog-wrap">
+        <div class="dialog-title">提示信息</div>
+        <div class="dialog-content">
+            <div class="dialog-info">
+                <span>您本月已签到10天</span>
+            </div>
+            <div class="dialog-else">
+                <dl>
+                    <dt class="sign-day">
+                        <span class="gift">1元</span>
+                        <span class="type">红包</span>
+                    </dt>
+                    <dd>签到1天</dd>
+                </dl>
+            </div>
+            <div class="dialog-btns">
+                <span class="dialog-btn">确定</span>
+            </div>
+        </div>
+    </div>
+</div>-->
+<button>点击</button>
+<script src="dialog.js"></script>
+<script>
+    var bounty = '';
+    var dialog;
+    ajax({
+        url:'data2.json',
+        param:'abc',
+        success:function(data){
+            var obj = data.res.bounty;
+            for(var i=0;i<obj.length;i++) {
+                bounty += '<dl>'+
+                        '<dt class="sign-day">'+
+                        '<span class="gift">'+obj[i].present+'</span>'+
+                        '<span class="type">'+obj[i].type+'</span>'+
+                        '</dt>'+
+                        '<dd>签到'+obj[i].days+'天</dd>'+
+                        '</dl>';
+            }
+
+            dialog= new Dialog({
+                tpl:'<div class="dialog-wrap"><div class="dialog-title">提示信息</div><div class="dialog-content"><div class="dialog-info"><span>您本月已签到10天</span></div><div class="dialog-else">'+bounty+'</div><div class="dialog-btns"><span class="dialog-btn ok">领取成功</span></div></div></div>',
+                feedback:function(dom){
+                    dom.onclick=function(e){
+                        e = e || event;
+                        var target = e.target || e.srcElement;
+
+                        while(target.tagName.toUpperCase() != "DL"){
+                            target = target.parentNode;
+                            if(target.tagName.toUpperCase() == 'BODY')
+                            break
+                        }
+
+                        if(target.tagName.toUpperCase() == 'DL'){
+                            target.className = 'active'
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    document.querySelector('button').onclick=function(){
+        dialog.confirm('hello world',function(){
+            console.log('we are learning github');
+        })
+    };
+
+    function ajax(obj) {
+        var type = obj.type || 'post',
+            sync = obj.sync|| true,
+            url = obj.url,
+            param = obj.param || null,
+            fn = obj.success;
+
+        if(!url){
+            throw new Error('url is not exist');
+        }
+        var xml = new XMLHttpRequest();
+        xml.open(type||"post",url,sync||false);
+        xml.onreadystatechange=function(){
+            if(xml.readyState == 4 && xml.status == 200){
+                if(fn){
+                    fn(JSON.parse(xml.responseText))
+                }
+            }else{
+                console.log("error");
+            }
+        };
+        xml.send(param);
+    }
+
+</script>
+</body>
+</html>

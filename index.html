@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <style>
+        html,body{
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .mask-layer{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            background: #000;
+            display: none;
+            transition: opacity 0.3s ease-out;
+        }
+        .mask-show{
+            display: block;
+        }
+        .dialog{
+            width: 90%;
+            display: none;
+            /*min-height: 200px;*/
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            background: #ffffff;
+            border-radius: 5px;
+            z-index: 1;
+            -webkit-transform: translate3d(-50%,-50%,0);
+            -moz-transform: translate3d(-50%,-50%,0);
+            -ms-transform: translate3d(-50%,-50%,0);
+            -o-transform: translate3d(-50%,-50%,0);
+            transform: translate3d(-50%,-50%,0);
+        }
+        .dialog-active{
+            display: block !important;
+        }
+        .dialog-title{
+            line-height: 2;
+            border-bottom: 1px solid #ccc;
+            padding: 0 10px;
+        }
+        .dialog-info{
+            line-height:1.2;
+            padding: 20px 10px;
+            text-align: center;
+            font-size: .8rem;
+        }
+
+        .dialog-btns{
+            display: flex;
+            border-radius: 5px;
+            background: lightcyan;
+        }
+        .dialog-btn{
+            flex: 10;
+            line-height: 44px;
+            text-align: center;
+
+            border-right: 1px solid #efefef;
+            font-size: .9rem;
+        }
+        .dialog-btn:last-child{
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<!--<div class="dialog">
+    <div class="dialog-wrap">
+        <div class="dialog-title">提示信息</div>
+        <div class="dialog-content">
+            <div class="dialog-info">你好1410A</div>
+            <div class="dialog-btns">
+                <span class="dialog-btn">确定</span>
+                <span class="dialog-btn">取消</span>
+            </div>
+        </div>
+    </div>
+</div>-->
+<div class="dialog">
+    <div class="dialog-wrap">
+        <div class="dialog-title">提示信息</div>
+        <div class="dialog-content">
+            <div class="dialog-info">你好1410A</div>
+            <div class="dialog-btns">
+                <span class="dialog-btn">确定</span>
+                <span class="dialog-btn">取消</span>
+            </div>
+        </div>
+    </div>
+</div>
+<button>点击</button>
+<script>
+
+    var Dialog= function (parent,title) {
+        if(parent == undefined){
+            parent = document.body
+        }else{
+            parent = document.querySelector(parent);
+        }
+
+        if(!parent.querySelector('.mask-layer')){
+            var maskDom = document.createElement('div');
+            maskDom.className = 'mask-layer';
+            parent.appendChild(maskDom);
+            this.mask = maskDom;
+        }else{
+            this.mask = parent.querySelector('.mask-layer');
+        }
+
+        if(!parent.querySelector('.dialog')){
+            var dom = document.createElement('div');
+            dom.className = 'dialog';
+            parent.appendChild(dom);
+            this.wrap = dom;
+        }
+        this.title = title || '提示信息';
+        this.init();
+    };
+    Dialog.prototype = {
+        tpl:'<div class="dialog-wrap"><div class="dialog-title">{{title}}</div><div class="dialog-content"><div class="dialog-info">{{information}}</div><div class="dialog-btns">{{btn}}</div></div></div>',
+        init:function(){
+            this.tpl = this.tpl.replace('{{title}}',this.title);
+        },
+        alert:function(msg,callback){
+            this.tpl = this.tpl.replace('{{information}}',msg).replace("{{btn}}","<span class='dialog-btn ok'>确定</span>");
+            this.wrap.innerHTML = this.tpl;
+            this.show();
+
+            this.callback = !!callback ? callback:function(){};
+            this.bindEvent();
+        },
+        confirm:function(msg,callback){
+            this.tpl = this.tpl.replace('{{information}}',msg).replace('{{btn}}','<span class="dialog-btn ok">以后再说</span><span class="dialog-btn cancel">绑定银行卡</span>');
+            this.wrap.innerHTML = this.tpl;
+            this.show();
+
+            this.callback = !!callback ? callback:function(){};
+            this.bindEvent();
+        },
+        bindEvent:function(){
+            this.wrap.querySelector('.ok').addEventListener('click',function(){
+                this.hide();
+                this.callback();
+            }.bind(this),false);
+            if(this.wrap.querySelector('.cancel')){
+                this.wrap.querySelector('.cancel').addEventListener('click',function(){
+                    this.hide()
+                }.bind(this),false)
+            }
+
+
+        },
+        show:function(){
+            this.wrap.className = this.wrap.className+=' dialog-active';
+            this.mask.className = this.mask.className+=' mask-show';
+            setTimeout(function(){
+                this.mask.style.opacity='0.7';
+            }.bind(this),10);
+            this.flag = false;
+        },
+        _hide:function(){
+            if(this.flag){
+                this.wrap.className = this.wrap.classList[0];
+                this.mask.className = this.mask.classList[0];
+                this.destroy();
+            }
+        },
+        hide:function(){
+            this.mask.style.opacity = 0;
+            this.mask.addEventListener('webkitTransitionEnd',this._hide.bind(this),false);
+            this.flag = true;
+        },
+        destroy:function(){
+            this.wrap.innerHTML='';
+        }
+    };
+
+
+    var dialog = new Dialog();
+    document.querySelector('button').onclick=function(){
+        dialog.confirm('hello world',function(){
+            console.warn('you selected certain');
+        })
+    }
+
+</script>
+</body>
+</html>
